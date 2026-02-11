@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+	<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1280,22 +1280,22 @@
                 <p class="section-desc">Open to internships, collaborations, and interesting projects. Let's connect.</p>
             </div>
             <div class="form-success" id="form-success">✓ Message sent! I'll get back to you within 48 hours.</div>
-            <form id="contactForm">
+            <form id="contactForm" action="https://formspree.io/f/mgolodbj" method="POST">
                 <div class="form-group">
                     <label for="name">Name</label>
-                    <input type="text" id="name" required placeholder="John Doe">
+                    <input type="text" id="name" name="name" required placeholder="Divyash Agrawal">
                 </div>
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" required placeholder="john@example.com">
+                    <input type="email" id="email" name="email" required placeholder="divyash@example.com">
                 </div>
                 <div class="form-group">
                     <label for="subject">Subject</label>
-                    <input type="text" id="subject" placeholder="Internship / Project Idea / Collaboration">
+                    <input type="text" id="subject" name="subject" placeholder="Internship / Project Idea / Collaboration">
                 </div>
                 <div class="form-group">
                     <label for="message">Message</label>
-                    <textarea id="message" required placeholder="Tell me about what you're working on..."></textarea>
+                    <textarea id="message" name="message" required placeholder="Tell me about what you're working on..."></textarea>
                 </div>
                 <button type="submit" class="submit-btn">Send Message</button>
             </form>
@@ -1495,40 +1495,37 @@
             toggle.textContent = showAllCerts ? 'Show less ↑' : 'View all 8 certifications ↓';
         }
 
-        // Contact Form
-      // Contact Form
+        // Contact Form - FORMSPREE
 document.getElementById('contactForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-
-  const name = document.getElementById('name').value;
-  const email = document.getElementById('email').value;
-  const subject = document.getElementById('subject').value;
-  const message = document.getElementById('message').value;
-
+  
+  const form = e.target;
+  const submitBtn = form.querySelector('.submit-btn');
+  const successMsg = document.getElementById('form-success');
+  
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending...';
+  
   try {
-    // Try to send to backend
-    const response = await fetch('http://localhost:5000/api/contact', {
+    const response = await fetch(form.action, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ name, email, subject, message })
+      body: new FormData(form),
+      headers: { 'Accept': 'application/json' }
     });
-
+    
     if (response.ok) {
-      console.log('✓ Message saved to database');
+      successMsg.classList.add('show');
+      form.reset();
+      setTimeout(() => successMsg.classList.remove('show'), 5000);
     } else {
-      console.log('⚠️ Backend returned error:', response.status);
+      throw new Error('Failed');
     }
   } catch (error) {
-    console.log('⚠️ Backend not available - using local demo');
+    alert('Error sending message. Try emailing me directly.');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Send Message';
   }
-
-  // Always show success message on frontend
-  const success = document.getElementById('form-success');
-  success.classList.add('show');
-  document.getElementById('contactForm').reset();
-  setTimeout(() => success.classList.remove('show'), 3000);
 });
 
 

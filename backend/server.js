@@ -16,12 +16,16 @@ app.use(express.json());
 
 // Serve frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
-
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/index.html"));
 });
 
-// Mongo schema
+// Mongo
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.error("MongoDB error:", err));
+
+// Schema + Model
 const ContactSchema = new mongoose.Schema({
   name: String,
   email: String,
@@ -29,32 +33,26 @@ const ContactSchema = new mongoose.Schema({
   message: String,
   createdAt: { type: Date, default: Date.now }
 });
-
 const Contact = mongoose.model("Contact", ContactSchema);
 
-// ✅ API route (THIS WAS MISSING)
+// API (POST only)
 app.post("/api/contact", async (req, res) => {
   try {
     const { name, email, subject, message } = req.body;
-
     if (!name || !email || !message) {
       return res.status(400).json({ error: "Missing fields" });
     }
-
     const saved = await Contact.create({ name, email, subject, message });
-    res.status(201).json({ ok: true, id: saved._id });
-  } catch (err) {
-    console.error("Save failed:", err);
-    res.status(500).json({ error: "Server error" });
+    return res.status(201).json({ ok: true, id: saved._id });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: "Server error" });
   }
 });
 
-// Mongo connect
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.log("MongoDB error:", err));
+// Health check (for browser)
+app.get("/api/health", (req, res) => res.json({ ok: true }));
 
-// IMPORTANT FOR RENDER
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
